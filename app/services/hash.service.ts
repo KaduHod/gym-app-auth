@@ -15,4 +15,4 @@ export const encrypt = (value:string) => {
     ).toString(encoding);
 }
 
-export const checkHash = (value: string,hash:string) => encrypt(value) === hash;
+export const checkHash = (value: string, hash:string) => encrypt(value) === hash;

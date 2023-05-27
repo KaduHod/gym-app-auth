@@ -12,8 +12,6 @@ import {
     ValidatorConstraintInterface 
 } from "class-validator"
 
-
-
 @ValidatorConstraint({name:"Email or password required", async: false})
 export class EmailOrNicknameRule implements ValidatorConstraintInterface {
     validate(value: any, validationArguments?: ValidationArguments | undefined):boolean {
@@ -47,7 +45,7 @@ export type AutheticateUserType = {
 }
 
 @EmailOrNickname()
-export class AutheticateUser {
+export class AuthenticateUserPayload {
     @IsNumber()
     @IsNotEmpty()
     id:number
