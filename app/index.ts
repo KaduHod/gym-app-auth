@@ -1,10 +1,15 @@
-import fastify, {FastifyRequest, FastifyReply} from "fastify";
-import { routes } from "./controllers/authentica.controller";
+import fastify from "fastify";
+import middlewarePlugin from '@fastify/middie'
+import { authenticateRoutes } from "./controllers/authentica.controller";
 import ENV from './config/env'
+import { GlobalErrorHandler } from "./exceptions/globalErrorHandler";
 
 const app = fastify({logger:false})
 
-app.register(routes)
+app
+.register(middlewarePlugin)
+.register(authenticateRoutes)
+.setErrorHandler(GlobalErrorHandler)
 
 /**
  * Run the server!
@@ -16,5 +21,5 @@ const start = async () => {
         app.log.error(err)
       process.exit(1)
     }
-  }
+}
 start()
