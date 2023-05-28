@@ -38,18 +38,15 @@ export const EmailOrNickname = (options?:ValidationOptions):ClassDecorator => {
 }
 
 export type AutheticateUserType = {
-    id:number,
     password:string, 
-    nickname:string,
-    email:string,
+    nickname?:string,
+    email?:string,
+    permission: string,
+    targetService:string
 }
 
 @EmailOrNickname()
 export class AuthenticateUserPayload {
-    @IsNumber()
-    @IsNotEmpty()
-    id:number
-
     @Length(5, 20)
     @IsOptional()
     @IsString()
@@ -65,10 +62,19 @@ export class AuthenticateUserPayload {
     @IsString()
     email?: string
 
+    @IsNotEmpty()
+    @IsString()
+    permission: string
+
+    @IsNotEmpty()
+    @IsString()
+    targetService:string
+
     constructor(props:AutheticateUserType){
-        this.id = props.id
         this.password = props.password
         this.nickname = props.nickname
         this.email = props.email
+        this.permission = props.permission
+        this.targetService = props.targetService
     }
 }

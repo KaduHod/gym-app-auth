@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/KaduHod/gym-app-auth#readme",
   "devDependencies": {
+    "@types/fastify-cors": "^2.1.0",
+    "@types/jsonwebtoken": "^9.0.2",
     "@types/node": "^20.2.5",
     "jest": "^29.5.0",
     "nodemon": "^2.0.22",
@@ -26,6 +28,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@fastify/cors": "^8.3.0",
     "@fastify/middie": "^8.3.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",

@@ -1,15 +1,15 @@
-import fastify from "fastify";
-import middlewarePlugin from '@fastify/middie'
-import { authenticateModule } from "./modules/auth/authenticate.module";
 import ENV from './config/env'
+import fastify from "fastify";
+import fastifyCors from '@fastify/cors';
 import { GlobalErrorHandler } from "./exceptions/globalErrorHandler";
+import { authenticateModule } from "./modules/auth/authenticate.module";
 
-const app = fastify({logger:false})
+const app = fastify({logger:true})
 
 app
-.register(middlewarePlugin)
 .register(authenticateModule)
 .setErrorHandler(GlobalErrorHandler)
+.register(fastifyCors)
 
 const start = async () => {
     try {

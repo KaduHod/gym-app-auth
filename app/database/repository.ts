@@ -4,7 +4,7 @@ import { Models, TABLES } from "./entitys";
 export type Select<Model extends Models> = Array<keyof Model> | keyof Model
 
 export type Where<Model extends Models> = {
-    [Property in keyof Model] : Model[Property] | Model[Property][]
+    [Property in keyof Model]? : Model[Property] | Model[Property][]
 }
 
 export class Repository<Model extends Models> {
@@ -16,7 +16,7 @@ export class Repository<Model extends Models> {
         const builder = this.builder()
         const select = this.setSelect(fields);
         return this.setWhere(builder as any, where)
-            .select(...select)
+            .select(...select);
     }
 
     getFirstBy(where: Where<Model>, fields?:Select<Model>) {
