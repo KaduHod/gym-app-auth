@@ -22,7 +22,7 @@ export class AuthorizeController {
                     .send({message: "Invalid token!"})
         }
 
-        const tokenDecoded  = this.tokenService.decode(token, {json: true})
+        const tokenDecoded = this.tokenService.decode(token, {json: true})
 
         if(!tokenDecoded) {
             throw {

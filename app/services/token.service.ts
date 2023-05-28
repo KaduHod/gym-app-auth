@@ -1,5 +1,5 @@
 import ENV from "../config/env";
-import jwt, { DecodeOptions, JsonWebTokenError, JwtPayload } from 'jsonwebtoken'
+import jwt, { DecodeOptions, JwtPayload } from 'jsonwebtoken'
 import { OmitCommon, Permission, User } from "../database/entitys";
 
 const {TOKEN_SECRET_KEY, TOKEN_ISSUER} = ENV
@@ -71,7 +71,7 @@ export const TokenService = ():TokenService => {
                 console.error(err)
                 return false
             }
-            throw err
+            return false
         }
         
     }
