@@ -1,39 +1,41 @@
 import ENV from "../../config/env";
-import { Permission, TABLES, User, UserPermissions } from "../../database/entitys";
+import { TokenService } from "../../services/token.service";
+import { TokenRepository } from "../../database/token.repository";
 import { repositoryFactory } from "../../database/repository";
-import { AuthenticateController } from "./authenticate.controller";
+import { redisClientFactory } from "../../services/redisClient.service";
+import { AuthenticateController, validatedUserPayload } from "./authenticate.controller";
 import { APP_STAGE, connectionFactory } from "../../database/conn";
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
-import { TokenService } from "../../services/token.service";
+import { Permission, TABLES, User, UserPermissions } from "../../database/entitys";
 
-export const authenticateModule = async ( app: FastifyInstance, option?: FastifyPluginOptions) => {
+export const authenticateModule = async ( app: FastifyInstance, option?: FastifyPluginOptions ) => {
     /**
      * Load dependencies
      */
     const connectionDB = connectionFactory(ENV.STAGE as APP_STAGE)
     const { getRepository } = repositoryFactory(connectionDB)
-    const userRepository = getRepository<User>(TABLES.USER)
-    const permissionRepository = getRepository<Permission>(TABLES.PERMISSIONS)
-    const usersPermissionsRepository = getRepository<UserPermissions>(TABLES.USER_PERMISSION)
-    const tokenService = TokenService()
     const authenticateController = new AuthenticateController(
-        userRepository, usersPermissionsRepository, permissionRepository, tokenService
+        getRepository<User>(TABLES.USER), 
+        getRepository<UserPermissions>(TABLES.USER_PERMISSION), 
+        getRepository<Permission>(TABLES.PERMISSIONS), 
+        TokenService(),
+        new TokenRepository(await redisClientFactory())
     )
 
-    /**
-     * Set middlewares
-     */
-    const authPreHandlers = [ 
-        authenticateController.authBodyValidation.bind(authenticateController),  
-        authenticateController.authBodyTransform.bind(authenticateController) 
-    ]
+    const middlewares = {
+        preValidation: [
+            authenticateController.authBodyValidation.bind(authenticateController),
+            authenticateController.authBodyTransform.bind(authenticateController)
+        ],
+        preHandler: authenticateController.checkUserCrendentials.bind(authenticateController)
+    }
 
     /**
      * Register routes
      */
     app.post(
-        "/auth", 
-        { preHandler: authPreHandlers } , 
-        authenticateController.auth.bind(authenticateController)
+        "/auth",  
+        middlewares,
+        authenticateController.handleToken.bind(authenticateController)
     )
 }

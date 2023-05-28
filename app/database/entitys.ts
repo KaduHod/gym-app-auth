@@ -6,6 +6,8 @@ export enum TABLES {
     USER_PERMISSION = "users_permission"
 }
 
+export type OmitCommon<T extends Models> = Omit<T, "createdAt" | "updatedAt">
+
 export type User = {
     id: number
     name: string

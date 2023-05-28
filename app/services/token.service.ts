@@ -1,22 +1,25 @@
 import ENV from "../config/env";
 import jwt, { JwtPayload } from 'jsonwebtoken'
-import { Permission, User } from "../database/entitys";
+import { OmitCommon, Permission, User } from "../database/entitys";
 
 const {TOKEN_SECRET_KEY, TOKEN_ISSUER} = ENV
 
-const TOKEN_EXPIRATION_TIME = () => {
+export const TOKEN_EXPIRATION_TIME = () => {
     return  Date.now() + (60 * 60 * 3 * 1000)
 }
 
 const algorithm = "HS256"
+
 const header = {
     typ :"JWT", 
     alg: algorithm,
     signature: TOKEN_SECRET_KEY
 }
 
-export type TOKEN = {
-
+export enum audience { 
+    MOBILE_APP = "mobile app", 
+    WEB_APP = "web app", 
+    WEB_SERVICE = "web service" 
 }
 
 export type TOKEN_PAYLOAD = JwtPayload & {
@@ -25,14 +28,14 @@ export type TOKEN_PAYLOAD = JwtPayload & {
 }
 
 export type TokenService = {
-    create: (user: User, permissions: Permission[] | Permission, subject:string, audience:string) => string,
+    create: (user: OmitCommon<User>, permissions: OmitCommon<Permission>[] | OmitCommon<Permission>, subject:string, audience:audience) => string,
     verify: (token:string) => boolean
 }
 
 export const TokenService = ():TokenService => {
     const create = (
-        {password, ...user}: User, 
-        permissions: Permission[] | Permission, 
+        {password, ...user}: OmitCommon<User>, 
+        permissions: OmitCommon<Permission>[] | OmitCommon<Permission>, 
         subject:string, 
         audience:string
     ): string => {
@@ -54,7 +57,7 @@ export const TokenService = ():TokenService => {
         )
     }
 
-    const verify = (token: TOKEN) => {
+    const verify = (token: string) => {
         return true
     }
 

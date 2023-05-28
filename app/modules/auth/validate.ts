@@ -1,7 +1,7 @@
 import {  
     IsEmail, 
-    IsNotEmpty, 
-    IsNumber, 
+    IsEnum, 
+    IsNotEmpty,  
     IsOptional, 
     IsString, 
     Length, 
@@ -11,6 +11,7 @@ import {
     ValidatorConstraint, 
     ValidatorConstraintInterface 
 } from "class-validator"
+import { audience } from "../../services/token.service";
 
 @ValidatorConstraint({name:"Email or password required", async: false})
 export class EmailOrNicknameRule implements ValidatorConstraintInterface {
@@ -42,7 +43,7 @@ export type AutheticateUserType = {
     nickname?:string,
     email?:string,
     permission: string,
-    targetService:string
+    targetService:audience
 }
 
 @EmailOrNickname()
@@ -67,8 +68,8 @@ export class AuthenticateUserPayload {
     permission: string
 
     @IsNotEmpty()
-    @IsString()
-    targetService:string
+    @IsEnum(audience)
+    targetService:audience
 
     constructor(props:AutheticateUserType){
         this.password = props.password
