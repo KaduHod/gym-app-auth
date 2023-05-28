@@ -125,7 +125,6 @@ export class AuthenticateController {
         )
         
         if(!errors.length) {
-            console.log("2")
             return next();
         }
 
