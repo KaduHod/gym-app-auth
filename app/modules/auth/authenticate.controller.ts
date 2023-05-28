@@ -6,7 +6,7 @@ import { validationErrorMapper } from "../../helpers/errors.helper";
 import { filterUnusedProps } from "../../helpers/object.helper";
 import { resolveWithoutThrow } from "../../helpers/promise.helper";
 import { STATUS_CODES } from "../../helpers/types";
-import { encrypt, checkHash } from "../../services/hash.service";
+import { checkHash } from "../../services/hash.service";
 import { TokenService } from "../../services/token.service";
 import { AuthenticateUserPayload } from "./validate";
 
@@ -19,10 +19,7 @@ export class AuthenticateController {
     ){}
 
     async auth(request:FastifyRequest, reply:FastifyReply){
-        console.log("***** CALLED TWICE *****")
         const userPayload:AuthenticateUserPayload = request.body as AuthenticateUserPayload;
-
-        console.log({userPayload})
 
         const where:Where<User> = {}
 
@@ -35,8 +32,8 @@ export class AuthenticateController {
         }
 
         const [userDB, permissionDB] = await Promise.all([
-            this.userRepository.getFirstBy(where, ["id","password"]),
-            this.permissionRepository.getFirstBy({title: userPayload.permission}, "id")
+            this.userRepository.getFirstBy(where,["id","password","birthday","email","name","nickname"]),
+            this.permissionRepository.getFirstBy({title: userPayload.permission}, ["title","id"])
         ]);
 
         if(!userDB) {
@@ -77,7 +74,7 @@ export class AuthenticateController {
         )
         
         return reply
-            .code(STATUS_CODES.OK)
+            .code(STATUS_CODES.CREATED)
             .send({token})
     }
 

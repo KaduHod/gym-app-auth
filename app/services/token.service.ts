@@ -9,7 +9,11 @@ const TOKEN_EXPIRATION_TIME = () => {
 }
 
 const algorithm = "HS256"
-const header = {typ :"JWT", alg: algorithm}
+const header = {
+    typ :"JWT", 
+    alg: algorithm,
+    signature: TOKEN_SECRET_KEY
+}
 
 export type TOKEN = {
 
@@ -32,15 +36,18 @@ export const TokenService = ():TokenService => {
         subject:string, 
         audience:string
     ): string => {
+        console.log({TOKEN_SECRET_KEY})
         return jwt.sign(
             JSON.stringify({
-                permissions,
-                user,
                 iss: TOKEN_ISSUER,
                 sub: subject,
                 aud: audience,
                 exp: TOKEN_EXPIRATION_TIME(),
-                iat: Date.now()
+                iat: Date.now(),
+                user: {
+                    ...user,
+                    permissions
+                },
             }),
             TOKEN_SECRET_KEY as string,
             { header }
