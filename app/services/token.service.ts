@@ -1,5 +1,5 @@
 import ENV from "../config/env";
-import jwt, { JwtPayload } from 'jsonwebtoken'
+import jwt, { JsonWebTokenError, JwtPayload } from 'jsonwebtoken'
 import { OmitCommon, Permission, User } from "../database/entitys";
 
 const {TOKEN_SECRET_KEY, TOKEN_ISSUER} = ENV
@@ -13,7 +13,6 @@ const algorithm = "HS256"
 const header = {
     typ :"JWT", 
     alg: algorithm,
-    signature: TOKEN_SECRET_KEY
 }
 
 export enum audience { 
@@ -39,7 +38,6 @@ export const TokenService = ():TokenService => {
         subject:string, 
         audience:string
     ): string => {
-        console.log({TOKEN_SECRET_KEY})
         return jwt.sign(
             JSON.stringify({
                 iss: TOKEN_ISSUER,
@@ -58,7 +56,16 @@ export const TokenService = ():TokenService => {
     }
 
     const verify = (token: string) => {
-        return true
+        try {
+            jwt.verify(token, TOKEN_SECRET_KEY as string)
+            return true
+        } catch (err:any) {
+            if(err.constructor.name === "JsonWebTokenError") {
+                return false
+            }
+            throw err
+        }
+        
     }
 
     return {create, verify}
