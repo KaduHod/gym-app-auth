@@ -22,6 +22,9 @@ export const authenticateModule = async ( app: FastifyInstance, option?: Fastify
         new TokenRepository(await redisClientFactory())
     )
 
+    /**
+     * Load middlewares
+     */
     const middlewares = {
         preValidation: [
             authenticateController.authBodyValidation.bind(authenticateController),

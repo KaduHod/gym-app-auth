@@ -1,11 +1,11 @@
 import ENV from "../config/env";
-import jwt, { JsonWebTokenError, JwtPayload } from 'jsonwebtoken'
+import jwt, { DecodeOptions, JsonWebTokenError, JwtPayload } from 'jsonwebtoken'
 import { OmitCommon, Permission, User } from "../database/entitys";
 
 const {TOKEN_SECRET_KEY, TOKEN_ISSUER} = ENV
 
 export const TOKEN_EXPIRATION_TIME = () => {
-    return  Date.now() + (60 * 60 * 3 * 1000)
+    return Date.now() + (60 * 60 * 3 * 1000)
 }
 
 const algorithm = "HS256"
@@ -28,7 +28,8 @@ export type TOKEN_PAYLOAD = JwtPayload & {
 
 export type TokenService = {
     create: (user: OmitCommon<User>, permissions: OmitCommon<Permission>[] | OmitCommon<Permission>, subject:string, audience:audience) => string,
-    verify: (token:string) => boolean
+    verify: (token:string) => boolean,
+    decode: (token: string, options: DecodeOptions & { json: true }) => null | JwtPayload;
 }
 
 export const TokenService = ():TokenService => {
@@ -57,10 +58,17 @@ export const TokenService = ():TokenService => {
 
     const verify = (token: string) => {
         try {
-            jwt.verify(token, TOKEN_SECRET_KEY as string)
+            jwt.verify(
+                token, TOKEN_SECRET_KEY as string, 
+                {
+                    issuer: ENV.ISSUER, 
+                    algorithms:[algorithm]
+                }
+            )
             return true
         } catch (err:any) {
             if(err.constructor.name === "JsonWebTokenError") {
+                console.error(err)
                 return false
             }
             throw err
@@ -68,5 +76,5 @@ export const TokenService = ():TokenService => {
         
     }
 
-    return {create, verify}
+    return {create, verify, decode: jwt.decode}
 }

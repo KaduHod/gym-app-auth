@@ -3,15 +3,14 @@ import { connectionFactory } from "../../database/conn";
 import { TokenService } from "../../services/token.service";
 import { AuthorizeController } from "./authorize.controller";
 
-export const authrorizeModule = ( app: FastifyInstance, option?: FastifyPluginOptions ) => {
-    const connectionDB = connectionFactory()
+export const authrorizeModule = async ( app: FastifyInstance, option?: FastifyPluginOptions ) => {
     const tokenService = TokenService()
-    const authorizeController = new AuthorizeController()
+    const authorizeController = new AuthorizeController(tokenService)
 
-    const preHandler = [
+    const preValidation = [
         authorizeController.authorizeBodyValidation.bind(authorizeController)
     ]
 
-    app.post("/authorize", { preHandler }, authorizeController.authorize)
+    app.post("/authorize", { preValidation }, authorizeController.authorize.bind(authorizeController))
 }
 
