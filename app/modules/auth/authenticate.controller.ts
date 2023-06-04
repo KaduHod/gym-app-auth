@@ -19,14 +19,14 @@ export type validatedUserPayload = {
 
 export class AuthenticateController {
     constructor(
-        public userRepository: Repository<User>,
-        public userPermissionRepository: Repository<UserPermissions>,
-        public permissionRepository: Repository<Permission>,
-        public tokenService: TokenService,
-        public tokenRepository: TokenRepository
+        public readonly userRepository: Repository<User>,
+        public readonly userPermissionRepository: Repository<UserPermissions>,
+        public readonly permissionRepository: Repository<Permission>,
+        public readonly tokenService: TokenService,
+        public readonly tokenRepository: TokenRepository
     ){}
 
-    async handleToken(request:FastifyRequest, reply:FastifyReply){        
+    async handleToken(request:FastifyRequest, reply:FastifyReply){     
         const {user, permissions, targetService} = request.body as validatedUserPayload;
 
         const tokenRedis = await this.tokenRepository.get({
@@ -36,21 +36,25 @@ export class AuthenticateController {
         if(tokenRedis && this.tokenService.verify(tokenRedis)) {
             return reply
                 .code(STATUS_CODES.OK)
-                .send({token: tokenRedis})
+                .send({accessToken: tokenRedis})
         }
 
-        const token = this.tokenService.create(
+        const accessToken = this.tokenService.create(
             user, 
             permissions, 
             user.id.toString(), 
             targetService
         )
 
-        await this.tokenRepository.push({ ...user, permissions }, token)
+        const refreshToken = this.tokenService.createRefresh(
+            user.id, request.ip, request.headers['user-agent'] as string
+        )
+
+        await this.tokenRepository.push({ ...user, permissions }, accessToken)
         
         return reply
             .code(STATUS_CODES.CREATED)
-            .send({token})
+            .send({accessToken, refreshToken})
     }
 
     async checkUserCrendentials(request:FastifyRequest, reply:FastifyReply, next: Function) {

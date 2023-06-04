@@ -1,5 +1,3 @@
-import { ClassConstructor } from "class-transformer";
-
 export const filterUnusedProps = <T>(constructor:any, args: {[key:string]:any}) => {
     const validProps = Object.getOwnPropertyNames(new constructor({}))
     const filteredValue = {} as {[key:string]:any}

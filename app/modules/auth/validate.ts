@@ -48,6 +48,14 @@ export type AutheticateUserType = {
 
 @EmailOrNickname()
 export class AuthenticateUserPayload {
+    constructor(init:AutheticateUserType){
+        this.password = init.password
+        this.nickname = init.nickname
+        this.email = init.email
+        this.permission = init.permission
+        this.targetService = init.targetService
+    }
+
     @Length(5, 20)
     @IsOptional()
     @IsString()
@@ -70,12 +78,4 @@ export class AuthenticateUserPayload {
     @IsNotEmpty()
     @IsEnum(audience)
     targetService:audience
-
-    constructor(props:AutheticateUserType){
-        this.password = props.password
-        this.nickname = props.nickname
-        this.email = props.email
-        this.permission = props.permission
-        this.targetService = props.targetService
-    }
 }
