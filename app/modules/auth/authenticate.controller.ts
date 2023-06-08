@@ -12,6 +12,7 @@ import { OmitCommon, Permission, User, UserPermissions } from "../../database/en
 import PermissionRepository from "../../database/permission.repository";
 import AccessToken, { audience } from "../../Tokens/Access.token";
 import RefreshToken from "../../Tokens/Refresh.token";
+import { redisKey } from "../../helpers/token.helper";
 
 export type validatedUserPayload = {
     user: OmitCommon<User>,
@@ -47,8 +48,8 @@ export class AuthenticateController {
             audience: targetService
         })
 
-        await this.tokenRepository.push(refreshTokenId, JSON.stringify(refreshToken))
-        
+        await this.tokenRepository.push(redisKey(refreshToken.ip, refreshToken.userAgent), JSON.stringify(refreshToken))
+
         return reply
             .code(STATUS_CODES.CREATED)
             .send({accessToken, refreshToken: refreshToken.sing()})

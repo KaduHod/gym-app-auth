@@ -1,7 +1,6 @@
 import { sign } from "jsonwebtoken"
 import { OmitCommon, Permission, User } from "../database/entitys"
 import env from "../config/env"
-import { TOKEN_EXPIRATION_TIME } from "../helpers/token.helper"
 
 export type AccessTokenI = {
     user:OmitCommon<User>,
@@ -36,7 +35,7 @@ export default class AccessToken implements AccessTokenI {
             TOKEN_SECRET_KEY,
             {
                 header,
-                expiresIn: TOKEN_EXPIRATION_TIME(1),
+                expiresIn: "30m",
                 audience: this.audience,
                 subject: this.user.id.toString()
             }

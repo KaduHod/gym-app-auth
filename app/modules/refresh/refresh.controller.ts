@@ -6,7 +6,7 @@ import { Repository } from "../../database/repository";
 import { TokenRepository } from "../../database/token.repository";
 import { validationErrorMapper } from "../../helpers/errors.helper";
 import { resolveWithoutThrow } from "../../helpers/promise.helper";
-import { decodeToken, verifyRefreshToken } from "../../helpers/token.helper";
+import { decodeToken, redisKey, verifyRefreshToken } from "../../helpers/token.helper";
 import { STATUS_CODES } from "../../helpers/types";
 import AccessToken from "../../Tokens/Access.token";
 import RefreshToken from "../../Tokens/Refresh.token";
@@ -38,7 +38,9 @@ export class AuthorizeController {
             }
         }
 
-        const tokenRedis = await this.tokenRepository.get(decoded.id)
+        const tokenRedis = await this.tokenRepository.get(
+            redisKey(decoded.ip, decoded.userAgent)
+        )
 
         if(!tokenRedis) {
             return reply 

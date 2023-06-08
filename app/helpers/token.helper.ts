@@ -2,6 +2,7 @@ import env from "../config/env"
 import { verify, decode } from "jsonwebtoken"
 import AccessToken, { algorithm, audience } from "../Tokens/Access.token"
 import RefreshToken from "../Tokens/Refresh.token";
+
 const { REFRESH_TOKEN_SECRET_KEY, TOKEN_SECRET_KEY, ISSUER } = env;
 
 export const verifyRefreshToken = (token:string) => {
@@ -48,4 +49,8 @@ export const decodeToken = <T extends AccessToken | RefreshToken>(token:string) 
 
 export const TOKEN_EXPIRATION_TIME = (hrs:number = 1) => {
     return Date.now() + (60 * 60 * hrs * 1000)
+}
+
+export const redisKey = (ip: string, userAgent: string) => {
+    return `${ip}:${userAgent}`
 }

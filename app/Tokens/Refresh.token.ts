@@ -1,6 +1,5 @@
 import { sign } from "jsonwebtoken"
 import env from "../config/env"
-import { TOKEN_EXPIRATION_TIME } from "../helpers/token.helper"
 import { audience } from "./Access.token"
 
 export type RefreshTokenI = {
@@ -17,7 +16,6 @@ const header = {
     typ :"JWT", 
     alg: algorithm,
 }
-
 
 export default class RefreshToken implements RefreshTokenI {
     public id!: string
@@ -37,7 +35,7 @@ export default class RefreshToken implements RefreshTokenI {
             REFRESH_TOKEN_SECRET_KEY,
             {
                 header,
-                expiresIn: TOKEN_EXPIRATION_TIME(2),
+                expiresIn: '1h',
                 subject: this.userID.toString(),
                 audience
             }
