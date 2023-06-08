@@ -11,7 +11,8 @@ import {
     ValidatorConstraint, 
     ValidatorConstraintInterface 
 } from "class-validator"
-import { audience } from "../../services/token.service";
+import { audience } from "../../Tokens/Access.token";
+
 
 @ValidatorConstraint({name:"Email or password required", async: false})
 export class EmailOrNicknameRule implements ValidatorConstraintInterface {
@@ -42,7 +43,6 @@ export type AutheticateUserType = {
     password:string, 
     nickname?:string,
     email?:string,
-    permission: string,
     targetService:audience
 }
 
@@ -52,7 +52,6 @@ export class AuthenticateUserPayload {
         this.password = init.password
         this.nickname = init.nickname
         this.email = init.email
-        this.permission = init.permission
         this.targetService = init.targetService
     }
 
@@ -72,10 +71,10 @@ export class AuthenticateUserPayload {
     email?: string
 
     @IsNotEmpty()
-    @IsString()
-    permission: string
-
-    @IsNotEmpty()
-    @IsEnum(audience)
-    targetService:audience
+    @IsEnum({
+        "web app": "web app",
+        "mobile app": "mobile app",
+        "web service": "web service",
+    })
+    targetService: audience
 }

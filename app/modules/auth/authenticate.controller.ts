@@ -1,6 +1,5 @@
-import { checkHash } from "../../services/hash.service";
+import { checkHash, encrypt } from "../../services/hash.service";
 import { STATUS_CODES } from "../../helpers/types";
-import { audience, TokenService } from "../../services/token.service";
 import { TokenRepository } from "../../database/token.repository";
 import { Repository, Where } from "../../database/repository";
 import { filterUnusedProps } from "../../helpers/object.helper";
@@ -10,6 +9,9 @@ import { AuthenticateUserPayload } from "./validate";
 import { validate, ValidationError } from "class-validator";
 import { FastifyRequest, FastifyReply } from "fastify";
 import { OmitCommon, Permission, User, UserPermissions } from "../../database/entitys";
+import PermissionRepository from "../../database/permission.repository";
+import AccessToken, { audience } from "../../Tokens/Access.token";
+import RefreshToken from "../../Tokens/Refresh.token";
 
 export type validatedUserPayload = {
     user: OmitCommon<User>,
@@ -20,41 +22,37 @@ export type validatedUserPayload = {
 export class AuthenticateController {
     constructor(
         public readonly userRepository: Repository<User>,
-        public readonly userPermissionRepository: Repository<UserPermissions>,
-        public readonly permissionRepository: Repository<Permission>,
-        public readonly tokenService: TokenService,
+        public readonly permissionRepository: PermissionRepository,
         public readonly tokenRepository: TokenRepository
     ){}
 
     async handleToken(request:FastifyRequest, reply:FastifyReply){     
-        const {user, permissions, targetService} = request.body as validatedUserPayload;
+        const {user, targetService} = request.body as validatedUserPayload;
 
-        const tokenRedis = await this.tokenRepository.get({
-            ...user, permissions 
+        const permissionDB: Permission[] = await this.permissionRepository.getByUser(user.id, ['title', "id"]);
+
+        const accessToken = new AccessToken({
+            user, 
+            permissions: permissionDB, 
+            audience: targetService
+        }).sign()
+
+        const refreshTokenId = encrypt(`${user.id}.${request.ip}`)
+
+        const refreshToken = new RefreshToken({
+            id: refreshTokenId,
+            userID: user.id,
+            ip: request.ip,
+            userAgent: request.headers['user-agent'] as string,
+            audience: targetService
         })
 
-        if(tokenRedis && this.tokenService.verify(tokenRedis)) {
-            return reply
-                .code(STATUS_CODES.OK)
-                .send({accessToken: tokenRedis})
-        }
-
-        const accessToken = this.tokenService.create(
-            user, 
-            permissions, 
-            user.id.toString(), 
-            targetService
-        )
-
-        const refreshToken = this.tokenService.createRefresh(
-            user.id, request.ip, request.headers['user-agent'] as string
-        )
-
-        await this.tokenRepository.push({ ...user, permissions }, accessToken)
+        await this.tokenRepository.push(refreshTokenId, JSON.stringify(refreshToken))
         
         return reply
             .code(STATUS_CODES.CREATED)
-            .send({accessToken, refreshToken})
+            .send({accessToken, refreshToken: refreshToken.sing()})
+
     }
 
     async checkUserCrendentials(request:FastifyRequest, reply:FastifyReply, next: Function) {
@@ -70,10 +68,7 @@ export class AuthenticateController {
             where.nickname = userPayload.nickname
         }
 
-        const [userDB, permissionDB] = await Promise.all([
-            this.userRepository.getFirstBy(where,["id","password","birthday","email","name","nickname"]) as Promise<OmitCommon<User>>,
-            this.permissionRepository.getFirstBy({title: userPayload.permission}, ["title","id"]) as Promise<OmitCommon<Permission> | OmitCommon<Permission>[]>
-        ]);
+        const userDB = await this.userRepository.getFirstBy(where,["id","password","birthday","email","name","nickname"]) as OmitCommon<User>
 
         if(!userDB) {
             throw {
@@ -82,41 +77,17 @@ export class AuthenticateController {
             }
         }
 
-        if(!permissionDB) {
-            throw {
-                statusCode: STATUS_CODES.UNAUTHORIZED,
-                message: "Permission not found!"
-            }
-            
-        }
-
-        const userHasPermission = await this.userPermissionRepository.getFirstBy({
-            user_id: userDB.id, 
-            permission_id: Array.isArray(permissionDB) 
-                ? permissionDB.map(({id}) => id)  
-                : permissionDB.id
-        });
-
-        if(!userHasPermission) {
-            throw {
-                statusCode: STATUS_CODES.UNAUTHORIZED,
-                message: "User permission not found!"
-            }
-        }
-
-        const validCredentials = checkHash(userPayload.password, userDB.password)
+        const validCredentials = checkHash(userPayload.password, userDB.password);
 
         if(!validCredentials) {
             throw {
                 statusCode: STATUS_CODES.UNAUTHORIZED,
                 message: "Invalid credentials!"
             }
-            
         }
 
         request.body = {
             user: userDB,
-            permissions: permissionDB,
             targetService: userPayload.targetService
         } as validatedUserPayload
 

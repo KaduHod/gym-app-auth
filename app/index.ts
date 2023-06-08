@@ -3,13 +3,15 @@ import fastify from "fastify";
 import fastifyCors from '@fastify/cors';
 import { GlobalErrorHandler } from "./exceptions/globalErrorHandler";
 import { authenticateModule } from "./modules/auth/authenticate.module";
-import { authrorizeModule } from './modules/authorize/authorize.module';
+import { refreshModule } from './modules/refresh/refresh.module';
+import { validateModule } from './modules/validate/validate.module';
 
 const app = fastify({logger:true})
 
 app
 .register(authenticateModule)
-.register(authrorizeModule)
+.register(refreshModule)
+.register(validateModule)
 .setErrorHandler(GlobalErrorHandler)
 .register(fastifyCors)
 

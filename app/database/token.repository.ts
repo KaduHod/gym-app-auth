@@ -1,27 +1,22 @@
-import { TOKEN_EXPIRATION_TIME } from '../services/token.service'
 import { RedisClientType, SetOptions } from 'redis'
-import { OmitCommon, Permission, User } from '../database/entitys'
-
-export type TOKEN_KEY = OmitCommon<User> & {
-    permissions: OmitCommon<Permission>[] | OmitCommon<Permission>
-}
+import { TOKEN_EXPIRATION_TIME } from '../helpers/token.helper'
 
 export class TokenRepository {
     constructor(
-        public redis: RedisClientType<Record<string, never>, Record<string, never>, Record<string, never>>
+        public readonly redis: RedisClientType<Record<string, never>, Record<string, never>, Record<string, never>>
     ){}
 
     getOptions():SetOptions{
         return {
-            EX: TOKEN_EXPIRATION_TIME()
+            EX: TOKEN_EXPIRATION_TIME(2)
         }
     }
 
-    async push(key:TOKEN_KEY,value:string){
-        await this.redis.SET(JSON.stringify(key), value, this.getOptions())
+    async push(key:string,value:string){
+        await this.redis.SET(key, value, this.getOptions())
     }
 
-    async get(key:TOKEN_KEY) {
-        return await this.redis.GET(JSON.stringify(key))
+    async get(key:string) {
+        return await this.redis.GET(key)
     }
 }
