@@ -22,5 +22,5 @@ export const refreshModule = async ( app: FastifyInstance, option?: FastifyPlugi
         authorizeController.authorizeBodyValidation.bind(authorizeController)
     ]
 
-    app.post("/authorize", { preValidation }, authorizeController.authorize.bind(authorizeController))
+    app.post("/refresh", { preValidation }, authorizeController.authorize.bind(authorizeController))
 }

@@ -35,7 +35,7 @@ export default class AccessToken implements AccessTokenI {
             TOKEN_SECRET_KEY,
             {
                 header,
-                expiresIn: "30m",
+                expiresIn: "1h",
                 audience: this.audience,
                 subject: this.user.id.toString()
             }

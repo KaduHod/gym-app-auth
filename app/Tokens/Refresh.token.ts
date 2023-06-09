@@ -35,7 +35,7 @@ export default class RefreshToken implements RefreshTokenI {
             REFRESH_TOKEN_SECRET_KEY,
             {
                 header,
-                expiresIn: '1h',
+                expiresIn: '2h',
                 subject: this.userID.toString(),
                 audience
             }
