@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  auth: 
+    image: node:latest
+    build: .
+    container_name: gym-auth
+    volumes:
+      - ./:/var/www/app
+    depends_on:
+      - redis
+    networks:
+      - gym
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    tty: true
+  redis:
+    image: redis:latest
+    container_name: gym-redis
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}
+    networks:
+      - gym
+
+networks:
+  gym:
+    external: true 
+    driver: bridge
