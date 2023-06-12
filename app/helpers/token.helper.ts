@@ -52,5 +52,5 @@ export const TOKEN_EXPIRATION_TIME = (hrs:number = 1) => {
 }
 
 export const redisKey = (ip: string, userAgent: string) => {
-    return `${ip}:${userAgent}`
+    return `${ip.trim()}:${userAgent.trim()}`.trim();
 }
